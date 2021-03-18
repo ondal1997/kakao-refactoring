@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getOptions, getStocks, getSubOptions } from "./api";
 import OptionSelector from "./OptionSelector";
 
 const stocks = {}
@@ -9,35 +10,19 @@ const App = ({ itemName, basicPrice }) => {
   const [subOptions, setSubOptions] = useState([])
 
   // TODO : effect에 대해 공부하기
-  useEffect(async () => {
-    try {
-      const res = await fetch(`https://n1d8hlyh02.execute-api.ap-northeast-2.amazonaws.com/dev/api/product-options`)
-      const _options = await res.json()
-
-      // 권장되지 않는 구문
-      setOptions(_options)
-    }
-    catch (error) {
-      console.error(error)
-    }
+  useEffect(() => {
+    (async () => {
+      const newOptions = await getOptions()
+      setOptions(newOptions)
+    })()
   }, [])
 
   const handleSelectOption = async (optionId) => {
-    try {
-      const res = await fetch(`https://n1d8hlyh02.execute-api.ap-northeast-2.amazonaws.com/dev/api/product-options/${optionId}`)
-      const _subOptions = await res.json()
+    const newSubOptions = await getSubOptions(optionId)
+    setSubOptions(newSubOptions)
 
-      const res2 = await fetch(`https://n1d8hlyh02.execute-api.ap-northeast-2.amazonaws.com/dev/api/stocks/${_subOptions.map(subOption => subOption.id).join(',')}`)
-      const _stocks = await res2.json()
-
-      Object.assign(stocks, _stocks)
-
-      // 권장되지 않는 구문
-      setSubOptions(_subOptions)
-    }
-    catch (error) {
-      console.error(error)
-    }
+    const newStocks = await getStocks(newSubOptions)
+    Object.assign(stocks, newStocks)
   }
 
   const handleSelectSubOption = (subOptionId) => {
