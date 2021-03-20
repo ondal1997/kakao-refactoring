@@ -5,7 +5,7 @@ const SelectedProductRow = ({ stocks, setSelectedProducts, product }) => {
 
     useEffect(() => {
         inputElement.current.addEventListener('change', (event) => {
-            let newQuantity = event.target.value
+            let newQuantity = Number.parseInt(+event.target.value)
 
             if (stocks[product.id].stock < newQuantity) {
                 newQuantity = stocks[product.id].stock;
