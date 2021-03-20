@@ -117,7 +117,17 @@ const App = ({ productName, basicPrice }) => {
       {`${totalPrice}원`}
 
       <div>
-        <button>주문하기</button>
+        <button disabled={!selectedProducts.length} onClick={() => {
+          let text = '주문할 상품 목록\n'
+
+          selectedProducts.forEach((selectedProduct) => {
+            text += `${selectedProduct.option.optionName} ${selectedProduct.subOption.optionName} ${selectedProduct.quantity}개, ${(basicPrice + stocks[selectedProduct.id].optionPrice) * selectedProduct.quantity}원\n`
+          })
+
+          text += `총 ${totalPrice}원`
+
+          alert(text)
+        }}>주문하기</button>
       </div>
     </div>
   )
