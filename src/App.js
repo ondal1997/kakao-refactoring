@@ -36,16 +36,17 @@ const App = ({ productName, basicPrice }) => {
 
     const fetchedSubOptions = await fetchSubOptions(optionId)
     setSubOptions((currentSubOptions) => [...currentSubOptions, ...fetchedSubOptions])
-    setLoadedOptionIds((currentLoadedOptionIds) => [...currentLoadedOptionIds, optionId])
 
     const fetchedStocks = await fetchStocks(fetchedSubOptions)
     setStocks((currentStocks) => { return { ...currentStocks, ...fetchedStocks } })
+
+    setLoadedOptionIds((currentLoadedOptionIds) => [...currentLoadedOptionIds, optionId])
   }
 
   // 인자 subOptionId의 무결성이 보장되는 상태
   const handleSelectSubOption = (subOptionId) => {
     if (!stocks[subOptionId]) {
-      alert('아직 재고 정보를 불러오지 못했습니다')
+      alert('재고 정보를 불러오지 못했습니다')
       return
     }
 
@@ -59,9 +60,14 @@ const App = ({ productName, basicPrice }) => {
       return
     }
 
+    const subOption = subOptions.find(subOption => subOption.id === subOptionId)
+    const option = options.find(option => option.id === subOption.parentOptionId)
+
     const selectedProduct = {
       id: subOptionId,
-      quantity: 1
+      quantity: 1,
+      option,
+      subOption
     }
 
     setSelectedProducts((currentSelectedProducts) => [...currentSelectedProducts, selectedProduct])
@@ -99,7 +105,13 @@ const App = ({ productName, basicPrice }) => {
       }
 
       <h3>선택된 상품</h3>
-      <SelectedProductTable stocks={stocks} selectedProducts={selectedProducts} setSelectedProducts={setSelectedProducts} />
+      {
+        selectedProducts.length ? (
+          <SelectedProductTable stocks={stocks} selectedProducts={selectedProducts} setSelectedProducts={setSelectedProducts} />
+        ) : (
+          <div>옵션을 선택해주세요.</div>
+        )
+      }
 
       <h3>총 가격</h3>
       {`${totalPrice}원`}

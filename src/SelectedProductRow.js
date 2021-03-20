@@ -30,10 +30,18 @@ const SelectedProductRow = ({ stocks, setSelectedProducts, product }) => {
     return (
         <>
             <div>
-                {product.id}
+                {`${product.option.optionName} ${product.subOption.optionName} (+${stocks[product.id].optionPrice}원)`}
             </div>
             <div>
                 <input type='number' ref={inputElement}></input>
+                <button onClick={() => {
+                    setSelectedProducts((currentSelectedProducts) => {
+                        const newSelectedProducts = currentSelectedProducts.slice()
+                        const targetProductIndex = newSelectedProducts.findIndex(selectedProduct => selectedProduct.id === product.id)
+                        newSelectedProducts.splice(targetProductIndex, 1)
+                        return newSelectedProducts
+                    })
+                }}>X</button>
             </div>
         </>
     )
