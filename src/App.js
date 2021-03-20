@@ -67,6 +67,12 @@ const App = ({ productName, basicPrice }) => {
     setSelectedProducts((currentSelectedProducts) => [...currentSelectedProducts, selectedProduct])
   }
 
+  let totalPrice = 0
+
+  selectedProducts.forEach(selectedProduct => {
+    totalPrice += (basicPrice + stocks[selectedProduct.id].optionPrice) * selectedProduct.quantity
+  });
+
   return (
     <div className='App'>
       <h1>카카오 인형가게</h1>
@@ -96,7 +102,7 @@ const App = ({ productName, basicPrice }) => {
       <SelectedProductTable stocks={stocks} selectedProducts={selectedProducts} setSelectedProducts={setSelectedProducts} />
 
       <h3>총 가격</h3>
-      {`0원`}
+      {`${totalPrice}원`}
 
       <div>
         <button>주문하기</button>
