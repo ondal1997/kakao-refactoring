@@ -1,43 +1,48 @@
 import { useState, useEffect } from "react";
-import { getOptions, getStocks, getSubOptions } from "./api";
+import { fetchOptions, fetchStocks, fetchSubOptions } from "./api";
 import OptionSelector from "./OptionSelector";
+import SelectedProductTable from "./SelectedProductTable";
 
-// TODO: api 예외 처리 빼내기, api 이름 변경하기
-// TODO: subOptions 캐시하기
-const App = ({ itemName, basicPrice }) => {
+const requestedOptionIds = []
+
+const App = ({ productName, basicPrice }) => {
   const [options, setOptions] = useState([])
   const [subOptions, setSubOptions] = useState([])
   const [stocks, setStocks] = useState({})
-  const [selectedItems, setSelectedItems] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState([])
 
   const [isLoaded, setIsLoaded] = useState(false)
-  const [requestedOptionIds, setRequestedOptionIds] = useState([])
-  const [selectedOptionId, setSelectedOptionId] = useState(null)
+  const [selectedOptionId, setSelectedOptionId] = useState('')
+  const [loadedOptionIds, setLoadedOptionIds] = useState([])
 
   // TODO: effect에 대해 공부하기
   useEffect(() => {
     (async () => {
-      const options = await getOptions()
-      setOptions((state) => [...state, ...options])
+      const fetchedOptions = await fetchOptions()
+      setOptions(fetchedOptions)
       setIsLoaded(true)
     })()
   }, [])
 
+  // 인자 optionId의 무결성이 보장되는 상태
   const handleSelectOption = async (optionId) => {
     setSelectedOptionId(optionId)
 
+    // 중복 요청 방지
     if (requestedOptionIds.includes(optionId)) {
       return
     }
-    setRequestedOptionIds((state) => [...state, optionId])
+    requestedOptionIds.push(optionId)
 
-    const subOptions = await getSubOptions(optionId)
-    setSubOptions((state) => [...state, ...subOptions])
+    const fetchedSubOptions = await fetchSubOptions(optionId)
+    setSubOptions((currentSubOptions) => [...currentSubOptions, ...fetchedSubOptions])
+    setLoadedOptionIds((currentLoadedOptionIds) => [...currentLoadedOptionIds, optionId])
 
-    const stocks = await getStocks(subOptions)
-    setStocks((state) => { return { ...state, ...stocks } })
+    const fetchedStocks = await fetchStocks(fetchedSubOptions)
+    setStocks((currentStocks) => { return { ...currentStocks, ...fetchedStocks } })
   }
 
+  // 인자 subOptionId의 무결성이 보장되는 상태
   const handleSelectSubOption = (subOptionId) => {
     if (!stocks[subOptionId]) {
       alert('아직 재고 정보를 불러오지 못했습니다')
@@ -49,54 +54,53 @@ const App = ({ itemName, basicPrice }) => {
       return
     }
 
-    if (selectedItems.some(({ id }) => id === subOptionId)) {
+    if (selectedProducts.some(({ id }) => id === subOptionId)) {
       alert('이미 선택된 상품입니다')
       return
     }
 
-    const selectedItem = {
+    const selectedProduct = {
       id: subOptionId,
-      size: 1
+      quantity: 1
     }
 
-    setSelectedItems((state) => [...state, selectedItem])
-  }
-
-  if (!isLoaded) {
-    return <div>Loading...</div>
+    setSelectedProducts((currentSelectedProducts) => [...currentSelectedProducts, selectedProduct])
   }
 
   return (
     <div className='App'>
       <h1>카카오 인형가게</h1>
 
-      <h2>{itemName}</h2>
-      {basicPrice + '원~'}
+      <h2>{productName}</h2>
+      {`${basicPrice}원~`}
 
       <h3>상품 옵션</h3>
-      <OptionSelector options={options} handleSelectOption={handleSelectOption} />
-      <OptionSelector options={subOptions.filter(({ parentOptionId }) => parentOptionId === selectedOptionId)} handleSelectOption={handleSelectSubOption} />
+      {
+        isLoaded ? (
+          <OptionSelector options={options} handleSelectOption={handleSelectOption} />
+        ) : (
+          <span>Loading...</span>
+        )
+      }
+      {
+        selectedOptionId && (
+          loadedOptionIds.includes(selectedOptionId) ? (
+            <OptionSelector options={subOptions.filter(({ parentOptionId }) => parentOptionId === selectedOptionId)} handleSelectOption={handleSelectSubOption} />
+          ) : (
+            <span>Loading...</span>
+          )
+        )
+      }
 
       <h3>선택된 상품</h3>
-      <ul>
-        {selectedItems.map(selectedItem => {
-          const subOption = subOptions.find(({ id }) => id === selectedItem.id)
-          const option = options.find(({ id }) => id === subOption.parentOptionId)
+      <SelectedProductTable stocks={stocks} selectedProducts={selectedProducts} setSelectedProducts={setSelectedProducts} />
 
-          return (
-            <li key={selectedItem.id}>
-              <div>
-                {`${option.optionName} ${subOption.optionName} (+${stocks[selectedItem.id].optionPrice}원)`}
-              </div>
-              <div>
-                <input value={selectedItem.size}></input>
-                <button>-</button>
-                <button>+</button>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+      <h3>총 가격</h3>
+      {`0원`}
+
+      <div>
+        <button>주문하기</button>
+      </div>
     </div>
   )
 }
