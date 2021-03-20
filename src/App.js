@@ -3,8 +3,6 @@ import { fetchOptions, fetchStocks, fetchSubOptions } from "./api";
 import OptionSelector from "./OptionSelector";
 import SelectedProductTable from "./SelectedProductTable";
 
-const requestedOptionIds = []
-
 const App = ({ productName, basicPrice }) => {
   const [options, setOptions] = useState([])
   const [subOptions, setSubOptions] = useState([])
@@ -13,6 +11,7 @@ const App = ({ productName, basicPrice }) => {
 
   const [isLoaded, setIsLoaded] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState('')
+  const [requestedOptionIds, setRequestedOptionIds] = useState([])
   const [loadedOptionIds, setLoadedOptionIds] = useState([])
 
   // TODO: effect에 대해 공부하기
@@ -32,7 +31,7 @@ const App = ({ productName, basicPrice }) => {
     if (requestedOptionIds.includes(optionId)) {
       return
     }
-    requestedOptionIds.push(optionId)
+    setRequestedOptionIds((currentRequestedOptionIds) => [...currentRequestedOptionIds, optionId])
 
     const fetchedSubOptions = await fetchSubOptions(optionId)
     setSubOptions((currentSubOptions) => [...currentSubOptions, ...fetchedSubOptions])
