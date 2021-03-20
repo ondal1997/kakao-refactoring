@@ -4,10 +4,6 @@ const SelectedProductRow = ({ stocks, setSelectedProducts, product }) => {
     const inputElement = useRef(null)
 
     useEffect(() => {
-        inputElement.current.value = product.quantity;
-    })
-
-    useEffect(() => {
         inputElement.current.addEventListener('change', (event) => {
             let newQuantity = event.target.value
 
@@ -24,6 +20,8 @@ const SelectedProductRow = ({ stocks, setSelectedProducts, product }) => {
                 targetProduct.quantity = newQuantity
                 return newSelectedProducts
             })
+
+            inputElement.current.value = newQuantity
         });
     }, [])
 
@@ -33,7 +31,7 @@ const SelectedProductRow = ({ stocks, setSelectedProducts, product }) => {
                 {`${product.option.optionName} ${product.subOption.optionName} (+${stocks[product.id].optionPrice}원)`}
             </div>
             <div>
-                <input type='number' ref={inputElement}></input>
+                <input type='number' defaultValue={product.quantity} ref={inputElement}></input>
                 <button onClick={() => {
                     setSelectedProducts((currentSelectedProducts) => {
                         const newSelectedProducts = currentSelectedProducts.slice()
